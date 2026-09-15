@@ -1,7 +1,7 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch:   # Allows you to run it manually
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -18,7 +18,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
 
       - name: Install dependencies
         run: npm install
@@ -32,14 +31,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'tools platform-tools platforms;android-34 build-tools;34.0.0'
 
       - name: Add Capacitor Android platform
         run: npx cap add android
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
 
       - name: Build Debug APK
         working-directory: android
