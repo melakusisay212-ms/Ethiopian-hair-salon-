@@ -3,7 +3,8 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -11,39 +12,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
-      - name: Install dependencies
+      - name: Install Node dependencies
         run: npm install
 
-      - name: Build web assets
+      - name: Build web app
         run: npm run build
 
-      - name: Set up Java
+      - name: Setup Java 17
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
 
-      - name: Accept licenses
-        run: yes | sdkmanager --licenses || true
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Add Capacitor Android
+      - name: Add Capacitor Android platform
         run: npx cap add android
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Make gradlew executable
+      - name: Make Gradle executable
         run: chmod +x android/gradlew
 
       - name: Build Debug APK
@@ -54,5 +57,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: salon-app-debug
-          path: android/app/build/outputs/apk/debug/*.apk
-          retention-days: 14
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
